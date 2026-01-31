@@ -11,6 +11,7 @@ app.use("/api/survey", require("./routes/survey.routes"));
 app.use("/api/recommendation", require("./routes/recommendation.routes"));
 app.use("/api/risk", require("./routes/risk.routes"));
 app.use("/api/auth", require("./routes/auth.routes"));
+app.use("/api/insurance", require("./routes/insurance.routes"));
 
 
 app.get("/", (req, res) => {

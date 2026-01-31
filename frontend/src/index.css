@@ -1,3 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Google Translate Widget Styling - Simplified */
+.translate-widget {
+    @apply relative;
+}
+
+.translate-widget .goog-te-gadget {
+    @apply font-sans;
+}
+
+.translate-widget .goog-te-gadget-simple {
+    @apply bg-transparent border-0;
+}
+
+.translate-widget .goog-te-combo {
+    @apply bg-white border-2 border-gray-100 rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 outline-none cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 min-w-[120px] !important;
+}
+
+.translate-widget .goog-te-combo:focus {
+    @apply border-blue-500 ring-2 ring-blue-100;
+}
+
+/* Show the widget content */
+.translate-widget .goog-te-gadget-simple .goog-te-menu-value {
+    @apply text-sm font-semibold text-gray-800 !important;
+    display: block !important;
+    visibility: visible !important;
+}
+
+.translate-widget .goog-te-gadget-simple .goog-te-menu-value span {
+    @apply text-gray-800 !important;
+    display: inline !important;
+}
+
+/* Hide Google Translate banner */
+.goog-te-banner-frame {
+    display: none !important;
+}
+
+body {
+    top: 0 !important;
+}

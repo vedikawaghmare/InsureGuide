@@ -39,11 +39,11 @@ function BiometricLogin() {
 
                 <button
                     onClick={() => {
+                        localStorage.setItem("isAuthenticated", "true");
                         localStorage.setItem("token", "demo-token");
                         navigate("/home");
                     }}
                     className="w-full py-3 rounded-xl font-semibold text-white bg-black hover:bg-gray-900 transition disabled:opacity-60"
-
                 >
                     Simulate Biometric Login
                 </button>

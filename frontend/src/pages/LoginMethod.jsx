@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Fingerprint, PhoneCall, MessageSquare, WifiOff, Wifi } from "lucide-react"; // Import icons
+import { Fingerprint, PhoneCall, MessageSquare, WifiOff, Wifi, Users } from "lucide-react"; // Import icons
 import AuthLayout from "../components/AuthLayout";
 
 export default function LoginMethod() {
@@ -76,6 +76,25 @@ export default function LoginMethod() {
                             <p className="text-sm text-gray-500">Receive OTP via text message</p>
                         </div>
                         <Wifi size={18} className="text-gray-300" />
+                    </div>
+                </button>
+
+                {/* Facilitator */}
+                <button
+                    onClick={() => navigate("/login/facilitator")}
+                    className="w-full p-5 border border-gray-100 rounded-2xl bg-white hover:border-purple-200 transition-all shadow-sm active:scale-[0.98]"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-purple-50 rounded-full">
+                            <Users className="text-purple-500" size={28} />
+                        </div>
+                        <div className="flex-1 text-left">
+                            <p className="font-bold text-gray-900">Facilitator Login</p>
+                            <p className="text-sm text-gray-500">Village helper dashboard access</p>
+                        </div>
+                        <span className="text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-1 rounded-md border border-purple-100">
+                            Staff Only
+                        </span>
                     </div>
                 </button>
             </div>

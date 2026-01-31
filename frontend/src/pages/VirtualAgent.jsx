@@ -11,9 +11,7 @@ import {
     MapPin,
     IndianRupee,
     Upload,
-    Home,
-    FileExclamationPoint,
-    LucideFileExclamationPoint
+    Users
 } from "lucide-react";
 
 /* ACTION CARD */
@@ -40,10 +38,18 @@ function ActionCard({ icon, label, bg ,onClick}) {
 
 function VirtualAgent() {
     const { t } = useTranslation();
-    const [messages, setMessages] = useState([]); // ✅ no duplicate welcome
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
+    const [sessionId, setSessionId] = useState(null);
+    const [connectionStatus, setConnectionStatus] = useState('online');
     const scrollRef = useRef(null);
     const navigate = useNavigate();
+
+    // Initialize session
+    useEffect(() => {
+        const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        setSessionId(newSessionId);
+    }, []);
 
     /* Auto scroll */
     useEffect(() => {
@@ -54,7 +60,7 @@ function VirtualAgent() {
 
     /* SEND MESSAGE */
     const handleSend = async () => {
-        if (!input.trim()) return;
+        if (!input.trim() || !sessionId) return;
 
         const userMessage = input;
         setMessages(prev => [...prev, { from: "user", text: userMessage }]);
@@ -67,7 +73,11 @@ function VirtualAgent() {
             const res = await fetch("http://localhost:5000/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: userMessage }),
+                body: JSON.stringify({ 
+                    message: userMessage,
+                    userId: 'user_' + Date.now(),
+                    sessionId 
+                }),
             });
 
             const data = await res.json();
@@ -77,9 +87,10 @@ function VirtualAgent() {
                 { from: "bot", text: data.response || "I’m here to help you." }
             ]);
         } catch {
+            setConnectionStatus('error');
             setMessages(prev => [
                 ...prev.slice(0, -1),
-                { from: "bot", text: "Network error. Please try again." }
+                { from: "bot", text: "Network error. Please try again.", source: 'error' }
             ]);
         }
     };
@@ -101,7 +112,9 @@ function VirtualAgent() {
                             <h2 className="font-bold text-lg text-gray-800 leading-none">Virtual Agent</h2>
                             <p className="text-xs text-green-600 flex items-center gap-1 mt-1 font-semibold">
                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                Connected
+                                {connectionStatus === 'online' ? 'Connected (Online AI)' : 
+                                 connectionStatus === 'offline' ? 'Connected (Offline AI)' :
+                                 connectionStatus === 'fallback' ? 'Connected (Knowledge Base)' : 'Connection Issues'}
                             </p>
                         </div>
                     </div>
@@ -140,11 +153,13 @@ function VirtualAgent() {
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             <ActionCard icon={<FileText />} label="Answer 5 Questions" bg="blue" onClick={() => navigate("/survey")}/>
-                            <ActionCard icon={<Volume2 />} label="See Your Plans" bg="yellow" />
-                            <ActionCard icon={<MapPin />} label="Is My Area Safe?" bg="green" />
-                            <ActionCard icon={<Phone />} label="Call Expert Now" bg="orange" />
-                            <ActionCard icon={<Upload />} label="Upload Policy Photo" bg="purple" />
-                            <ActionCard icon={<IndianRupee />} label="Get Money Back" bg="red" />
+                            <ActionCard icon={<Volume2 />} label="See Your Plans" bg="yellow" onClick={() => navigate("/recommendations")}/>
+                            <ActionCard icon={<MapPin />} label="Is My Area Safe?" bg="green" onClick={() => navigate("/risk-map")}/>
+                            <ActionCard icon={<Phone />} label="Call Expert Now" bg="orange" onClick={() => navigate("/agents")}/>
+                            <ActionCard icon={<Upload />} label="Upload Policy Photo" bg="purple" onClick={() => navigate("/claim/new")}/>
+                            <ActionCard icon={<IndianRupee />} label="Get Money Back" bg="red" onClick={() => navigate("/claim")}/>
+                            <ActionCard icon={<Users />} label="Facilitator View" bg="purple" onClick={() => navigate("/facilitator")}/>
+                            <ActionCard icon={<MapPin />} label="Location Insurance" bg="green" onClick={() => navigate("/location-insurance")}/>
                         </div>
                     </div>
 

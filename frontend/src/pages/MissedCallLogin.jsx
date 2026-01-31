@@ -73,6 +73,8 @@ function MissedCallLogin() {
         return;
       }
 
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("token", data.token || "missed-call-token");
       navigate("/home");
 
     } catch (err) {

@@ -1,10 +1,34 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 import Card from "../components/Card";
 
 function DashboardHome() {
     const navigate = useNavigate();
     const { i18n, t } = useTranslation();
+    const [userProfile, setUserProfile] = useState(null);
+
+    // Get user profile data
+    useEffect(() => {
+        const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        setUserProfile(profile);
+    }, []);
+
+    // Generate personalized greeting
+    const getPersonalizedGreeting = () => {
+        if (!userProfile?.village) return "Real Stories from Your Community";
+        
+        const riskTypes = {
+            flood: "Health + Crop Insurance",
+            drought: "Crop + Livestock Insurance", 
+            earthquake: "Home + Health Insurance"
+        };
+        
+        const primaryRisk = userProfile.primaryRisk || 'flood';
+        const village = userProfile.village || 'your area';
+        
+        return `People in ${village} often benefit from ${riskTypes[primaryRisk]}`;
+    };
 
     // 🔊 Text to speech
     const speak = (text, lang) => {
@@ -58,12 +82,13 @@ function DashboardHome() {
                                         const { text, lang } = getSpeech();
                                         speak(text, lang);
                                     }}
-                                    className="px-4 py-2 rounded-lg border text-sm"
+                                    aria-label="Play insurance explanation audio"
+                                    className="px-4 py-3 rounded-lg border text-sm min-h-[44px]"
                                 >
                                     ▶️ Auto-play (30 sec)
                                 </button>
 
-                                <span class="inline-flex items-center px-3 py-1 rounded-full border text-xs align-middle">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full border text-xs align-middle">
                                     Hindi Subtitles
                                 </span>
                             </div>
@@ -71,9 +96,9 @@ function DashboardHome() {
                     </div>
                 </Card>
 
-                {/* COMMUNITY STORIES */}
+                {/* PERSONALIZED COMMUNITY STORIES */}
                 <h2 className="font-semibold mb-3">
-                    Real Stories from Your Community
+                    {getPersonalizedGreeting()}
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -126,7 +151,10 @@ function DashboardHome() {
                         </div>
                     </div>
 
-                    <button className="bg-black text-white px-5 py-3 rounded-xl text-sm">
+                    <button 
+                        aria-label="Call insurance helpline for voice assistance"
+                        className="bg-black text-white px-6 py-4 rounded-xl text-sm min-h-[48px] min-w-[160px]"
+                    >
                         Call: 1800-XXX-XXXX
                     </button>
                 </Card>
@@ -138,14 +166,16 @@ function DashboardHome() {
 
                 <button
                     onClick={() => navigate("/agent")}
-                    className="w-full bg-black text-white py-4 rounded-2xl font-semibold mb-3"
+                    aria-label="Start interactive insurance guide"
+                    className="w-full bg-black text-white py-6 rounded-2xl font-semibold mb-3 text-lg min-h-[64px]"
                 >
                     ▶ Start Insurance Guide
                 </button>
 
                 <button
                     onClick={() => navigate("/agents")}
-                    className="w-full border-2 border-black py-4 rounded-2xl font-semibold mb-6"
+                    aria-label="Talk to insurance agent for emergency help"
+                    className="w-full border-2 border-black py-6 rounded-2xl font-semibold mb-6 text-lg min-h-[64px]"
                 >
                     📞 Talk to Agent Now (Emergency)
                 </button>
@@ -153,15 +183,23 @@ function DashboardHome() {
                 {/* SECONDARY ACTIONS */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <Card
-                        className="text-center cursor-pointer hover:shadow-md transition"
+                        className="text-center cursor-pointer hover:shadow-md transition p-6 min-h-[80px] flex items-center justify-center"
                         onClick={() => navigate("/risk-map")}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="View village risk map"
+                        onKeyDown={(e) => e.key === 'Enter' && navigate("/risk-map")}
                     >
                         🗺️ Village Risk Map
                     </Card>
 
                     <Card
-                        className="text-center cursor-pointer hover:shadow-md transition"
+                        className="text-center cursor-pointer hover:shadow-md transition p-6 min-h-[80px] flex items-center justify-center"
                         onClick={() => navigate("/claim")}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="File insurance claim"
+                        onKeyDown={(e) => e.key === 'Enter' && navigate("/claim")}
                     >
                         📄 File a Claim
                     </Card>

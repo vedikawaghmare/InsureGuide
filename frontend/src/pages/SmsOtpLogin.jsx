@@ -48,6 +48,7 @@ function SmsOtpLogin() {
         const data = await res.json();
 
         if (res.ok) {
+            localStorage.setItem("isAuthenticated", "true");
             localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data.user));
             navigate("/home");

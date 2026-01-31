@@ -1,0 +1,65 @@
+{
+  "appName": "InsureGuide",
+  "tagline": "Insurance made simple for rural India",
+  "description": "InsureGuide is a multilingual virtual insurance assistant that helps farmers and rural families understand and choose the right insurance without confusion or complex jargon.",
+  "takeSurvey": "Take Insurance Survey",
+  "facilitatorDashboard": "Facilitator Dashboard",
+  "theProblem": "The Problem",
+  "problemDescription": "Many rural families do not use insurance due to lack of awareness, language barriers, and complex procedures.",
+  "ourSolution": "Our Solution",
+  "solutionDescription": "InsureGuide explains insurance in simple local languages using guided surveys.",
+  "keyFeatures": "Key Features",
+  "cropInsurance": "Crop Insurance Recommendations",
+  "livestockCoverage": "Livestock and Equipment Coverage",
+  "healthAwareness": "Health Insurance Awareness",
+  "multilingualSupport": "Multilingual Support",
+  "status": "Online",
+  "language": {
+    "welcome": "Welcome to InsureGuide",
+    "choose": "Choose Your Language",
+    "chooseNative": "Select your preferred language",
+    "terms": "By continuing, you agree to our terms and conditions"
+  },
+  "whatIsInsurance": "What is Insurance?",
+  "watchVideo": "Watch this short video to understand how insurance protects you.",
+  "communityStories": "Real Stories from Your Community",
+  "farmerName": "Ramesh Patil",
+  "successStory": "Successfully claimed ₹50,000 for crop loss",
+  "helpText": "Can't read? We're here to help.",
+  "callHelp": "Call 1800-XXX-XXXX",
+  "trustedAssistant": "Your trusted digital insurance assistant",
+  "loginToContinue": "Login to Continue",
+  "chooseLoginMethod": "Choose Login Method",
+  "biometricLogin": "Biometric Login",
+  "biometricDesc": "Fast & secure (Recommended)",
+  "missedCallOtp": "Missed Call OTP",
+  "missedCallDesc": "No internet needed",
+  "smsOtp": "SMS OTP",
+  "smsDesc": "Receive OTP via message",
+  "login": {
+    "biometric": {
+      "title": "Biometric Login",
+      "auth": "Biometric Authentication",
+      "instruction": "Place your finger on the sensor or look at the camera",
+      "waiting": "Waiting for biometric input...",
+      "simulate": "Simulate Success (Demo)",
+      "other": "Try other login methods"
+    },
+    "missed": {
+      "title": "Missed Call Login",
+      "otp": "Enter OTP",
+      "info": "We'll call you and disconnect. Use the last 4 digits as OTP.",
+      "step1": "1. Enter your mobile number",
+      "step2": "2. We'll call and disconnect",
+      "step3": "3. Enter last 4 digits as OTP",
+      "number": "Mobile Number",
+      "button": "Get Missed Call"
+    },
+    "sms": {
+      "title": "SMS Login",
+      "placeholder": "Enter mobile number",
+      "button": "Send OTP"
+    },
+    "terms": "By using this app, you agree to our terms and privacy policy"
+  }
+}

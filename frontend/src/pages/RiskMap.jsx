@@ -70,7 +70,7 @@ const PolicyRecommendations = ({ recommendations }) => {
     return (
         <div className="bg-white rounded-2xl shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <CheckCircle2 className="text-green-600" size={24} />
+                <CheckCircle2 className="text-green-700" size={24} />
                 {t('riskMap.recommendedPolicies')}
             </h3>
 
@@ -114,12 +114,22 @@ const PolicyRecommendations = ({ recommendations }) => {
         </div>
     );
 };
-const RiskCard = ({ icon: Icon, title, riskLevel, reason, history }) => {
+
+const RiskCard = ({ icon: Icon, title, riskLevel, reason, history, category }) => {
     const { t } = useTranslation();
-    const colors = {
+
+    // Risk Level Colors (for badges and indicator borders)
+    const riskColors = {
         HIGH: "border-red-200 text-red-600 bg-red-50",
         MEDIUM: "border-amber-200 text-amber-600 bg-amber-50",
         LOW: "border-emerald-200 text-emerald-600 bg-emerald-50",
+    };
+
+    // Category Colors (for icons to match map highlighting)
+    const categoryColors = {
+        flood: "text-red-600 bg-red-100 border-red-200",
+        crop: "text-orange-600 bg-orange-100 border-orange-200",
+        health: "text-blue-600 bg-blue-100 border-blue-200"
     };
 
     // Voice explanation for statistics with language detection
@@ -260,12 +270,12 @@ const RiskCard = ({ icon: Icon, title, riskLevel, reason, history }) => {
     return (
         <div className="bg-white border-2 border-gray-100 rounded-3xl p-6 space-y-4 shadow-sm">
             <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-2xl border ${colors[riskLevel]}`}>
+                <div className={`p-3 rounded-2xl border ${categoryColors[category] || riskColors[riskLevel]}`}>
                     <Icon size={24} />
                 </div>
                 <div className="flex-1 flex justify-between">
-                    <h3 className="font-bold text-lg">{title}</h3>
-                    <span className={`text-[10px] font-black px-2 py-1 rounded border ${colors[riskLevel]}`}>
+                    <h3 className="font-bold text-lg text-gray-900">{title}</h3>
+                    <span className={`text-[10px] font-black px-2 py-1 rounded border ${riskColors[riskLevel]}`}>
                         {riskLevel}
                     </span>
                 </div>
@@ -325,25 +335,42 @@ function RiskMap() {
     const [locationInfo, setLocationInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [analysisLoading, setAnalysisLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     /* GET USER LOCATION */
     const getLocation = () => {
         setLoading(true);
+        setError(null);
+
+        if (!navigator.geolocation) {
+            const fallbackCoords = [18.5204, 73.8567];
+            setPosition(fallbackCoords);
+            setLoading(false);
+            fetchLocationData(fallbackCoords, 'Pune');
+            return;
+        }
+
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                const coords = [pos.coords.latitude, pos.coords.longitude];
-                setPosition(coords);
-                setLoading(false);
+                try {
+                    const coords = [pos.coords.latitude, pos.coords.longitude];
+                    setPosition(coords);
+                    setLoading(false);
 
-                if (mapRef.current) {
-                    mapRef.current.setView(coords, 13);
+                    if (mapRef.current) {
+                        mapRef.current.setView(coords, 13);
+                    }
+
+                    fetchLocationData(coords);
+                } catch (err) {
+                    console.error('Error processing location:', err);
+                    setError('Failed to process location');
+                    setLoading(false);
                 }
-
-                // Fetch weather and risk data for current location
-                fetchLocationData(coords);
             },
-            () => {
-                const fallbackCoords = [18.5204, 73.8567]; // Pune fallback
+            (err) => {
+                console.error('Geolocation error:', err);
+                const fallbackCoords = [18.5204, 73.8567];
                 setPosition(fallbackCoords);
                 setLoading(false);
                 fetchLocationData(fallbackCoords, 'Pune');
@@ -357,13 +384,16 @@ function RiskMap() {
 
         setLoading(true);
         try {
-            // Using OpenStreetMap Nominatim API for geocoding
+            // Using backend geocoding proxy to avoid CORS issues
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName)}&limit=1`
+                `http://localhost:5000/api/geocode/geocode?q=${encodeURIComponent(locationName)}`
             );
             const data = await response.json();
 
             if (data && data.length > 0) {
+                const address = data[0].address || {};
+                const cityName = address.city || address.town || address.village || address.suburb || data[0].display_name.split(',')[0];
+
                 const coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
                 setPosition(coords);
 
@@ -372,7 +402,7 @@ function RiskMap() {
                 }
 
                 // Fetch weather and risk data for searched location
-                fetchLocationData(coords, data[0].display_name);
+                fetchLocationData(coords, cityName);
             } else {
                 alert(t('riskMap.locationNotFound'));
             }
@@ -393,16 +423,16 @@ function RiskMap() {
         setAnalysisLoading(true);
         try {
             console.log('Fetching location data for:', coords, locationName);
-            
+
             // Use enhanced backend API with real location data
             const response = await fetch(
                 `http://localhost:5000/api/risk?lat=${coords[0]}&lon=${coords[1]}&district=${encodeURIComponent(locationName || 'Unknown')}`
             );
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
+
             const apiData = await response.json();
             console.log('API Response:', apiData);
 
@@ -422,7 +452,7 @@ function RiskMap() {
                     description: apiData.weather?.condition || 'partly cloudy'
                 }],
                 wind: { speed: apiData.weather?.windSpeed || 3 },
-                name: apiData.summary?.location || locationName || 'Current Location',
+                name: locationName || apiData.summary?.location || 'Current Location',
                 rainfall: apiData.weather?.rainfall_mm || 0
             };
 
@@ -436,8 +466,8 @@ function RiskMap() {
                 summary: apiData.summary,
                 recommendations: apiData.recommendedPlans || []
             });
-            setLocationInfo({ 
-                name: apiData.summary?.location || locationName || 'Current Location', 
+            setLocationInfo({
+                name: locationName || apiData.summary?.location || 'Current Location',
                 coords,
                 overallRisk: apiData.summary?.overallRisk,
                 keyRisks: apiData.summary?.keyRisks
@@ -445,14 +475,14 @@ function RiskMap() {
 
         } catch (error) {
             console.error('Error fetching location data:', error);
-            
+
             // Show user-friendly error message
-            const errorMessage = error.message.includes('Failed to fetch') 
+            const errorMessage = error.message.includes('Failed to fetch')
                 ? 'Unable to connect to server. Please check if the backend is running on port 5000.'
                 : `API Error: ${error.message}`;
-                
+
             alert(errorMessage);
-            
+
             // Set fallback data to prevent blank screen
             setWeatherData({
                 main: { temp: 25, humidity: 60, pressure: 1013 },
@@ -461,7 +491,7 @@ function RiskMap() {
                 name: locationName || 'Current Location',
                 rainfall: 0
             });
-            
+
         } finally {
             setAnalysisLoading(false);
         }
@@ -507,17 +537,17 @@ function RiskMap() {
     return (
         <div className="h-[calc(100vh-100px)] flex flex-col gap-4">
             {/* HEADER & SEARCH */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                    <ShieldAlert className="text-blue-600" />
+            <div className="flex flex-col gap-3 bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-slate-100">
+                <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <ShieldAlert className="text-blue-600" size={20} />
                     {t('riskMap.title')}
                 </h1>
 
-                <div className="flex gap-2 w-full md:w-auto min-w-[500px]">
+                <div className="flex gap-2 w-full">
                     <input
                         type="text"
                         placeholder={t('riskMap.searchPlaceholder')}
-                        className="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 bg-white text-slate-900 placeholder-slate-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none font-medium"
+                        className="flex-1 border border-slate-300 rounded-xl px-3 md:px-4 py-2.5 bg-white text-slate-900 placeholder-slate-500 text-sm md:text-base focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none font-medium"
                         onKeyPress={(e) => {
                             if (e.key === 'Enter') {
                                 searchLocation(e.target.value);
@@ -526,13 +556,13 @@ function RiskMap() {
                     />
                     <button
                         onClick={getLocation}
-                        className="bg-slate-900 text-white px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
+                        className="bg-slate-900 text-white px-3 md:px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors flex-shrink-0"
                         title={t('riskMap.myLocation')}
                     >
-                        <MapPin size={20} />
+                        <MapPin size={18} className="md:w-5 md:h-5" />
                     </button>
                     <button
-                        className="bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl hover:bg-slate-200 transition-colors"
+                        className="hidden md:flex bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl hover:bg-slate-200 transition-colors"
                         title="Download Report"
                     >
                         <Download size={20} />
@@ -541,25 +571,25 @@ function RiskMap() {
             </div>
 
             {/* SPLIT CONTENT */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
+            <div className="flex-1 flex flex-col lg:grid lg:grid-cols-3 gap-4 md:gap-6 min-h-0">
 
                 {/* LEFT COL: MAP (Takes up remaining height) */}
-                <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative">
-                    {/* Map Legend */}
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-3 z-[1000] text-xs border border-slate-200">
-                        <h4 className="font-bold mb-2 text-slate-800">{t('riskMap.riskZones')}</h4>
-                        <div className="space-y-1.5">
-                            <div className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full bg-red-500 shadow-sm"></span>
-                                <span className="text-slate-600 font-medium">{t('riskMap.highRiskFlood')}</span>
+                <div className="lg:col-span-2 bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative h-[400px] md:h-auto">
+                    {/* Map Legend - Moved to right side to avoid zoom controls */}
+                    <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-white/95 backdrop-blur-md rounded-xl md:rounded-2xl shadow-xl p-2 md:p-4 z-[1000] text-[10px] md:text-xs border border-slate-200 max-w-[140px] md:max-w-[180px]">
+                        <h4 className="font-bold mb-2 md:mb-3 text-slate-900 border-b pb-1 md:pb-2">{t('riskMap.riskZones')}</h4>
+                        <div className="space-y-1.5 md:space-y-2.5">
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <span className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-full bg-red-500 shadow-sm border border-white flex-shrink-0"></span>
+                                <span className="text-slate-700 font-semibold leading-tight">{t('riskMap.highRiskFlood')}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full bg-orange-500 shadow-sm"></span>
-                                <span className="text-slate-600 font-medium">{t('riskMap.mediumRiskCrop')}</span>
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <span className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-full bg-orange-500 shadow-sm border border-white flex-shrink-0"></span>
+                                <span className="text-slate-700 font-semibold leading-tight">{t('riskMap.mediumRiskCrop')}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></span>
-                                <span className="text-slate-600 font-medium">{t('riskMap.healthFacilities')}</span>
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <span className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-full bg-blue-500 shadow-sm border border-white flex-shrink-0"></span>
+                                <span className="text-slate-700 font-semibold leading-tight">{t('riskMap.healthFacilities')}</span>
                             </div>
                         </div>
                     </div>
@@ -575,48 +605,52 @@ function RiskMap() {
 
                         {riskData && (
                             <>
-                                {/* Flood Risk Circle */}
+                                {/* Flood Risk Circle - Always RED as requested */}
                                 <Circle
                                     center={position}
                                     radius={2000}
                                     pathOptions={{
-                                        color: riskData.weather.floodRisk === "HIGH" ? "#ef4444" : riskData.weather.floodRisk === "MEDIUM" ? "#f97316" : "#22c55e",
-                                        fillColor: riskData.weather.floodRisk === "HIGH" ? "#ef4444" : riskData.weather.floodRisk === "MEDIUM" ? "#f97316" : "#22c55e",
-                                        fillOpacity: 0.2,
-                                        weight: 2
+                                        color: "#ef4444", // Red
+                                        fillColor: "#ef4444",
+                                        fillOpacity: 0.4,
+                                        weight: 3
                                     }}
                                 />
 
-                                {/* Crop Risk Circle */}
+                                {/* Crop Risk Circle - Always ORANGE as requested */}
                                 <Circle
-                                    center={[position[0] + 0.01, position[1] + 0.01]}
+                                    center={[position[0] + 0.008, position[1] + 0.012]}
                                     radius={1500}
                                     pathOptions={{
-                                        color: riskData.agriculture.cropRisk === "HIGH" ? "#ef4444" : riskData.agriculture.cropRisk === "MEDIUM" ? "#f97316" : "#22c55e",
-                                        fillColor: riskData.agriculture.cropRisk === "HIGH" ? "#ef4444" : riskData.agriculture.cropRisk === "MEDIUM" ? "#f97316" : "#22c55e",
-                                        fillOpacity: 0.15,
-                                        weight: 2
+                                        color: "#f97316", // Orange
+                                        fillColor: "#f97316",
+                                        fillOpacity: 0.35,
+                                        weight: 3
                                     }}
                                 />
 
-                                {/* Health Access Circle */}
+                                {/* Health Access Circle - Always BLUE as requested */}
                                 <Circle
-                                    center={[position[0] - 0.01, position[1] - 0.01]}
-                                    radius={1000}
+                                    center={[position[0] - 0.01, position[1] - 0.008]}
+                                    radius={1200}
                                     pathOptions={{
-                                        color: riskData.infrastructure.healthAccess === "GOOD" ? "#22c55e" : "#f97316",
-                                        fillColor: riskData.infrastructure.healthAccess === "GOOD" ? "#22c55e" : "#f97316",
-                                        fillOpacity: 0.1,
-                                        weight: 2
+                                        color: "#3b82f6", // Blue
+                                        fillColor: "#3b82f6",
+                                        fillOpacity: 0.3,
+                                        weight: 3
                                     }}
                                 />
+
+                                {/* Health Markers - Consistent Blue */}
+                                <Marker position={[position[0] - 0.007, position[1] - 0.005]} />
+                                <Marker position={[position[0] - 0.015, position[1] - 0.01]} />
                             </>
                         )}
                     </MapContainer>
                 </div>
 
                 {/* RIGHT COL: CONTENT (Scrollable) */}
-                <div className="lg:col-span-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 h-full">
+                <div className="lg:col-span-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 md:space-y-6 h-full pb-4">
                     {/* WEATHER SUMMARY */}
                     {weatherData && (
                         <WeatherSummary weatherData={weatherData} locationInfo={locationInfo} />
@@ -636,24 +670,39 @@ function RiskMap() {
                                 icon={Droplets}
                                 title={t('riskMap.floodRisk')}
                                 riskLevel={riskData.weather.floodRisk}
-                                reason={riskData.weather.floodRisk === 'HIGH' ? t('riskMap.highFloodReason') : t('riskMap.lowFloodReason')}
-                                history={{ date: t('riskMap.currentSeason'), affected: weatherData?.main.humidity + '%', insured: '65%' }}
+                                category="flood"
+                                reason={riskData.demographics?.flood.reason || (riskData.weather.floodRisk === 'HIGH' ? t('riskMap.highFloodReason') : t('riskMap.lowFloodReason'))}
+                                history={{
+                                    date: t('riskMap.currentSeason'),
+                                    affected: riskData.demographics?.flood.affected * 10,
+                                    insured: riskData.demographics?.flood.protected * 10
+                                }}
                             />
 
                             <RiskCard
                                 icon={Wheat}
                                 title={t('riskMap.cropRisk')}
                                 riskLevel={riskData.agriculture.cropRisk}
-                                reason={riskData.agriculture.cropRisk === 'HIGH' ? t('riskMap.highCropReason') : t('riskMap.lowCropReason')}
-                                history={{ date: t('riskMap.thisYear'), affected: Math.round(weatherData?.main.temp) + '°C', insured: '45%' }}
+                                category="crop"
+                                reason={riskData.demographics?.crop.reason || (riskData.agriculture.cropRisk === 'HIGH' ? t('riskMap.highCropReason') : t('riskMap.lowCropReason'))}
+                                history={{
+                                    date: t('riskMap.thisYear'),
+                                    affected: riskData.demographics?.crop.affected * 10,
+                                    insured: riskData.demographics?.crop.protected * 10
+                                }}
                             />
 
                             <RiskCard
                                 icon={Hospital}
                                 title={t('riskMap.healthAccess')}
                                 riskLevel={riskData.infrastructure.healthAccess === 'GOOD' ? 'LOW' : 'HIGH'}
-                                reason={t('riskMap.healthAccessReason')}
-                                history={{ date: t('riskMap.always'), affected: t('riskMap.notApplicable'), insured: '78%' }}
+                                category="health"
+                                reason={riskData.demographics?.health.reason || t('riskMap.healthAccessReason')}
+                                history={{
+                                    date: t('riskMap.always'),
+                                    affected: riskData.demographics?.health.affected * 10,
+                                    insured: riskData.demographics?.health.protected * 10
+                                }}
                             />
                         </div>
                     )}
@@ -666,20 +715,31 @@ function RiskMap() {
                     )}
 
                     {/* AREA RISK SUMMARY (Moved from bottom) */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <ShieldAlert className="text-blue-600" size={20} />
-                            {t('riskMap.riskAssessment')}
-                        </h3>
-                        {/* Compact version of the bottom summary */}
-                        <div className="space-y-3">
-                            <div className="bg-red-50 border-l-4 border-red-500 rounded p-3">
-                                <h4 className="font-semibold text-red-800 text-sm">Weather Risk</h4>
-                                <p className="text-xs text-red-700 mt-1">{t('riskMap.weatherRiskDesc')}</p>
+                    {riskData && (
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <ShieldAlert className="text-blue-600" size={20} />
+                                {t('riskMap.riskAssessment')}
+                            </h3>
+                            {/* Comprehensive summary from backend */}
+                            <div className="space-y-4">
+                                <div className={`p-4 rounded-xl border-l-4 ${riskData.summary?.overallRisk === 'HIGH' ? 'bg-red-50 border-red-500' : 'bg-green-50 border-green-500'}`}>
+                                    <h4 className="font-bold text-slate-900 mb-1">Overall Assessment</h4>
+                                    <p className="text-sm text-slate-700">{riskData.summary?.weatherRiskDesc || 'Weather risk assessment based on current conditions'}</p>
+                                </div>
+
+                                <div className="bg-amber-50 border-l-4 border-amber-500 rounded p-4">
+                                    <h4 className="font-bold text-amber-900 mb-1">Soil & Crop Risk</h4>
+                                    <p className="text-sm text-amber-800">{riskData.summary?.soilRiskDesc || 'Soil and crop risk assessment for this area'}</p>
+                                </div>
+
+                                <div className="bg-blue-50 border-l-4 border-blue-500 rounded p-4">
+                                    <h4 className="font-bold text-blue-900 mb-1">Disaster & Infrastructure</h4>
+                                    <p className="text-sm text-blue-800">{riskData.summary?.disasterRiskDesc || 'Infrastructure and disaster preparedness assessment'}</p>
+                                </div>
                             </div>
-                            {/* ... can add more here if needed, but keeping it clean for right rail */}
                         </div>
-                    </div>
+                    )}
 
 
                 </div>

@@ -127,7 +127,7 @@ function VirtualAgent() {
                 <div className="space-y-4 max-w-3xl">
                     <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
                         <p className="text-slate-800 text-base">
-                            Namaste! I’m your insurance helper. I can speak in your language and help you understand insurance.
+                            Namaste! I’m your InsureGuide Saathi. I can speak in your language and break down complex insurance words into simple terms you can easily understand.
                         </p>
                     </div>
 

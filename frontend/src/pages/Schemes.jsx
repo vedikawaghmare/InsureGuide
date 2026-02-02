@@ -14,6 +14,8 @@ import {
     Loader2
 } from "lucide-react";
 
+import JargonHelper from "../components/JargonHelper";
+
 function SchemeCard({ scheme }) {
     const typeIcons = {
         'Crop': <Wheat className="text-amber-600" size={20} />,
@@ -31,9 +33,11 @@ function SchemeCard({ scheme }) {
                     {typeIcons[scheme.type] || <Shield size={20} />}
                 </div>
                 {scheme.governmentSupport && (
-                    <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-md border border-green-100 dark:border-green-900/10">
-                        {scheme.governmentSupport}
-                    </span>
+                    <JargonHelper termKey="subsidized">
+                        <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-md border border-green-100 dark:border-green-900/10 cursor-help">
+                            {scheme.governmentSupport}
+                        </span>
+                    </JargonHelper>
                 )}
             </div>
 
@@ -47,11 +51,15 @@ function SchemeCard({ scheme }) {
 
             <div className="space-y-3 pt-4 border-t border-slate-50 dark:border-slate-800">
                 <div className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-slate-400">Premium</span>
+                    <JargonHelper termKey="premium">
+                        <span className="font-bold text-slate-400">Premium</span>
+                    </JargonHelper>
                     <span className="font-black text-slate-900 dark:text-white">{scheme.premium}</span>
                 </div>
                 <div className="flex justify-between items-start text-xs">
-                    <span className="font-bold text-slate-400">Coverage</span>
+                    <JargonHelper termKey="coverage">
+                        <span className="font-bold text-slate-400">Coverage</span>
+                    </JargonHelper>
                     <span className="font-bold text-slate-700 dark:text-slate-300 text-right max-w-[150px]">{scheme.benefits}</span>
                 </div>
             </div>

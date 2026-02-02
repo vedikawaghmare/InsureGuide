@@ -40,13 +40,12 @@ export default function LandingPage() {
                             <Sparkles size={14} /> Digital India Certified
                         </div>
                         <h1 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-white mb-8 leading-[0.95] tracking-tighter">
+                            Your <span className="text-blue-600 dark:text-blue-400">Village</span> <br />
                             Insurance <br />
-                            <span className="text-blue-600 dark:text-blue-400">Simplified</span> For <br />
-                            <span className="italic font-serif serif-font">Rural Homes</span>
+                            <span className="italic font-serif serif-font underline decoration-blue-500/30">Saathi</span>
                         </h1>
                         <p className="text-xl md:text-2xl text-slate-500 mb-12 max-w-2xl leading-relaxed lg:mx-0 mx-auto font-medium">
-                            Protecting dreams across Bharat with voice-guided insurance, instant claims, and risk mapping.
-                            Built for everyone, working everywhere.
+                            InsureGuide bridges the awareness gap for rural India. We break down complex financial jargon into your local language, protecting your crops, livestock, and family with intuitive AI and human support.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-6 lg:justify-start justify-center">
                             <button
@@ -140,29 +139,29 @@ export default function LandingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         <FeatureCard
                             icon={<FileText size={32} />}
-                            title="Zero-Paper Claims"
-                            desc="File insurance claims using just your voice and phone camera. No complicated forms or physical visits required."
+                            title="Jargon-Free Support"
+                            desc="We translate complex financial terms into simple, local languages so you never feel lost during purchasing or documentation."
                             color="text-blue-600 dark:text-blue-400"
                             bgColor="bg-blue-50 dark:bg-blue-900/10"
                         />
                         <FeatureCard
                             icon={<Map size={32} />}
-                            title="Community Risk Map"
-                            desc="Advanced satellite data showing real-time flood, drought, and crop health risks for your specific plot."
+                            title="Village Risk Map"
+                            desc="Real-time regional insights for your specific plot, showing flood, drought, and crop health risks powered by satellite data."
                             color="text-emerald-600 dark:text-emerald-400"
                             bgColor="bg-emerald-50 dark:bg-emerald-900/10"
                         />
                         <FeatureCard
-                            icon={<Phone size={32} />}
-                            title="Offline Protocol"
-                            desc="Access your policy, check status, and receive urgent alerts even in zero-internet areas via our SMS gateway."
+                            icon={<Wheat size={32} />}
+                            title="Agri-First Focus"
+                            desc="Specialized protection for your core assets: crops, livestock, and farm equipment, alongside standard life and health options."
                             color="text-orange-600 dark:text-orange-400"
                             bgColor="bg-orange-50 dark:bg-orange-900/10"
                         />
                         <FeatureCard
-                            icon={<Activity size={32} />}
-                            title="AI Saathi"
-                            desc="Our multilingual AI agent understands local accents and guiding you through every step of the insurance process."
+                            icon={<Users size={32} />}
+                            title="Human Connection"
+                            desc="Digital convenience meets personal support. Get connected with verified human agents for step-by-step claim assistance."
                             color="text-purple-600 dark:text-purple-400"
                             bgColor="bg-purple-50 dark:bg-purple-900/10"
                         />

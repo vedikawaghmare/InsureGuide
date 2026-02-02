@@ -57,13 +57,13 @@ function Recommendations() {
     ) {
         recommendations.push({
             title: "PM Fasal Bima Yojana (PMFBY)",
-            desc: "Comprehensive crop insurance against natural risks.",
+            desc: "Complete protection for your crops against weather damage.",
             icon: <Wheat className="text-amber-600" />,
-            premium: "1.5% - 2% sum insured",
+            premium: "Only 1.5% - 2% of crop value",
             coverage: "Full crop value protection",
-            benefits: "• Payouts for drought, flood, pests\n• Subsidized by Government\n• Direct benefit transfer to bank\n• Covers yield loss & post-harvest loss",
-            documents: "Land records (7/12 उतारा), Aadhaar, Sowing certificate",
-            whyRecommended: "As a farmer, PMFBY is your primary safety net against harvest failure."
+            benefits: "• Money back for drought, flood, pests\n• Government pays most of the cost\n• Direct money transfer to your bank\n• Covers crop loss after harvest too",
+            documents: "Land papers (7/12 उतारा), Aadhaar, Sowing proof",
+            whyRecommended: "As a farmer, this plan protects your entire harvest investment."
         });
     }
 
@@ -73,26 +73,26 @@ function Recommendations() {
     ) {
         recommendations.push({
             title: "Ayushman Bharat (PM-JAY)",
-            desc: "World's largest government-funded healthcare scheme.",
+            desc: "Free hospital treatment for your entire family.",
             icon: <HeartPulse className="text-rose-600" />,
-            premium: "Free for eligible families",
+            premium: "Completely free for eligible families",
             coverage: "₹5,00,000 per family per year",
-            benefits: "• Cashless treatment at empanelled hospitals\n• Covers secondary and tertiary care\n• No cap on family size or age\n• Pre-existing diseases covered from day 1",
-            documents: "PMJAY ID/Golden Card, Aadhaar, Ration Card",
-            whyRecommended: "Ensures high-quality medical care for your family without financial stress."
+            benefits: "• No payment needed at hospitals\n• Covers major surgeries and treatments\n• No limit on family members or age\n• Old health problems covered from day 1",
+            documents: "PMJAY Card/Golden Card, Aadhaar, Ration Card",
+            whyRecommended: "Get the best medical care for your family without worrying about money."
         });
     }
 
     if (answers.occupation === "Livestock Owner" || answers.concerns?.includes("Animal Death")) {
         recommendations.push({
             title: "Kisan Livestock Insurance",
-            desc: "Protection for your valuable cattle and livestock assets.",
+            desc: "Money back if your cattle or animals die.",
             icon: <ShieldCheck className="text-purple-600" />,
             premium: "₹500 - ₹2,000 per animal",
-            coverage: "Market value (up to ₹80,000 per cattle)",
-            benefits: "• Covers death due to disease or accident\n• Post-mortem report based settlement\n• Covers Cattle, Buffalo, Goat, Sheep\n• Payout within 15 days of claim",
+            coverage: "Full animal value (up to ₹80,000 per cattle)",
+            benefits: "• Money back if animal dies from disease or accident\n• Quick settlement with doctor's report\n• Covers Cattle, Buffalo, Goat, Sheep\n• Payment within 15 days of claim",
             documents: "Animal health certificate, Ear tag photo, Owner Aadhaar",
-            whyRecommended: "Protects your livestock which is a key part of your livelihood."
+            whyRecommended: "Protects your valuable animals that help earn your living."
         });
     }
 
@@ -103,26 +103,26 @@ function Recommendations() {
     ) {
         recommendations.push({
             title: "PM Suraksha Bima Yojana (PMSBY)",
-            desc: "Affordable accidental death and disability insurance.",
+            desc: "Money for your family if you get hurt in an accident.",
             icon: <AlertTriangle className="text-emerald-500" />,
-            premium: "₹20 per year",
-            coverage: "₹2,00,000 for death/total disability",
-            benefits: "• 24/7 global accidental coverage\n• Auto-debit from bank account\n• Simple claim process via local bank\n• Covers partial disability with ₹1 Lakh payout",
-            documents: "Savings Bank Account details, Aadhaar card",
-            whyRecommended: "Essential, low-cost accidental protection for active workers."
+            premium: "Only ₹20 per year",
+            coverage: "₹2,00,000 for death/serious injury",
+            benefits: "• 24/7 accident protection anywhere in world\n• Auto payment from your bank account\n• Easy claim process at your local bank\n• ₹1 Lakh for partial injury",
+            documents: "Bank Account details, Aadhaar card",
+            whyRecommended: "Very cheap accident protection for people who work actively."
         });
     }
 
     // Add Life Insurance for everyone
     recommendations.push({
         title: "PM Jeevan Jyoti Bima Yojana (PMJJBY)",
-        desc: "Affordable life insurance for family security.",
+        desc: "Money for your family if something happens to you.",
         icon: <ShieldCheck className="text-blue-600" />,
         premium: "₹436 per year",
         coverage: "₹2,00,000 (Life Cover)",
-        benefits: "• Covers death due to any reason\n• Simple enrollment via bank\n• No medical checkup required\n• Pure term insurance for family security",
+        benefits: "• Money for family if you die for any reason\n• Easy signup through your bank\n• No health checkup needed\n• Simple life insurance for family security",
         documents: "Aadhaar Card, Nominee details, Bank Account",
-        whyRecommended: "Basic life insurance ensures your family's future even in your absence."
+        whyRecommended: "Basic life insurance keeps your family safe even when you're not there."
     });
 
     if (loading) return (

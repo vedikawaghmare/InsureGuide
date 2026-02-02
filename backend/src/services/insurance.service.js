@@ -7,35 +7,65 @@ class InsuranceRecommendationService {
     // Insurance plan definitions
     getInsurancePlans() {
         return {
-            CROP_INSURANCE: {
-                name: "Crop Insurance",
-                covers: "Crop loss due to drought, flood, pest attacks, and weather damage",
-                premium: "₹2,000-5,000 per season",
-                benefits: "Up to 100% crop value compensation"
+            PMFBY: {
+                id: "pmfby",
+                name: "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+                type: "Crop",
+                category: "Government",
+                covers: "Complete crop cycle insurance against non-preventable natural risks (Drought, Flood, Pests)",
+                premium: "1.5% - 2% for Food/Oilseeds, 5% for Commercial/Horticultural",
+                benefits: "Unified crop insurance, low farmer premium, full sum insured payout",
+                governmentSupport: "Highly Subsided"
             },
-            PROPERTY_INSURANCE: {
-                name: "Property Insurance",
-                covers: "House and property damage from natural disasters, fire, theft",
-                premium: "₹3,000-8,000 per year",
-                benefits: "Rebuilding costs and temporary accommodation"
+            AYUSHMAN_BHARAT: {
+                id: "pmjay",
+                name: "PM-JAY (Ayushman Bharat)",
+                type: "Health",
+                category: "Government",
+                covers: "Secondary and tertiary care hospitalization",
+                premium: "Free for eligible families",
+                benefits: "₹5 Lakh per family per year, cashless treatment at empanelled hospitals",
+                governmentSupport: "100% Free for Eligible"
             },
-            HEALTH_INSURANCE: {
-                name: "Health Insurance",
-                covers: "Medical expenses, hospitalization, heat-related illnesses",
-                premium: "₹5,000-15,000 per year",
-                benefits: "Cashless treatment up to ₹5 lakhs"
+            LIC_PMJJBY: {
+                id: "pmjjby",
+                name: "Pradhan Mantri Jeevan Jyoti Bima Yojana",
+                type: "Life",
+                category: "Government",
+                covers: "Life cover of ₹2 Lakh on death due to any reason",
+                premium: "₹436 per year",
+                benefits: "Easy renewal via bank account, high settlement ratio",
+                governmentSupport: "Low Cost"
             },
-            LIVESTOCK_INSURANCE: {
-                name: "Livestock Insurance",
+            PMSBY: {
+                id: "pmsby",
+                name: "Pradhan Mantri Suraksha Bima Yojana",
+                type: "Accident",
+                category: "Government",
+                covers: "Accidental death and full/partial disability",
+                premium: "₹20 per year",
+                benefits: "₹2 Lakh for death/full disability, ₹1 Lakh for partial disability",
+                governmentSupport: "Minimal Cost"
+            },
+            LIVESTOCK_ALLIANZ: {
+                id: "livestock",
+                name: "Kisan Livestock Insurance",
+                type: "Livestock",
+                category: "Commercial",
                 covers: "Cattle, buffalo, goat loss due to disease, accidents, natural calamities",
                 premium: "₹500-2,000 per animal",
-                benefits: "Market value compensation for animal loss"
+                benefits: "Market value compensation for animal loss",
+                governmentSupport: "Optional Subsidy"
             },
-            WEATHER_INSURANCE: {
-                name: "Weather-Based Insurance",
-                covers: "Income loss due to excess/deficit rainfall, temperature variations",
-                premium: "₹1,500-4,000 per season",
-                benefits: "Automatic payouts based on weather data"
+            WEATHER_SHIELD: {
+                id: "weather",
+                name: "Weather-Based Index Insurance (WBCIS)",
+                type: "Weather",
+                category: "Government/Private",
+                covers: "Income loss due to excess/deficit rainfall, heat/wind variations",
+                premium: "Subsidized by State/Central Govt",
+                benefits: "Automatic payouts based on weather station data",
+                governmentSupport: "Subsidized"
             }
         };
     }
@@ -56,58 +86,56 @@ class InsuranceRecommendationService {
                     ? "MEDIUM"
                     : "LOW";
 
-        // Rule 1: High flood/drought risk → Crop Insurance
+        // Rule 1: High flood/drought risk → PMFBY
         if (weatherRisk.floodRisk === "HIGH" || weatherRisk.droughtRisk === "HIGH") {
             recommendations.push({
-                ...plans.CROP_INSURANCE,
-                reason: `High ${weatherRisk.floodRisk === "HIGH" ? "flood" : "drought"} risk detected in your area. Protect your crops from weather damage.`,
+                ...plans.PMFBY,
+                reason: `High ${weatherRisk.floodRisk === "HIGH" ? "flood" : "drought"} risk detected in your area. Protect your crops with PMFBY.`,
                 priority: 1
             });
         }
 
-        // Rule 2: High disaster risk → Property Insurance  
+        // Rule 2: High disaster risk → PMSBY
         if (disasterRisk.disasterRisk === "HIGH") {
             recommendations.push({
-                ...plans.PROPERTY_INSURANCE,
-                reason: "Global disaster activity is currently high, which increases long-term environmental risk. Protect your home and property.",
+                ...plans.PMSBY,
+                reason: "Increased regional disaster risk detected. Accidental protection via PMSBY recommended.",
                 priority: 1
             });
         }
 
-        // Rule 3: High temperature → Health Insurance
+        // Rule 3: High temperature → Ayushman Bharat
         if (weatherData.temperature > 35 || weatherRisk.heatRisk === "HIGH") {
             recommendations.push({
-                ...plans.HEALTH_INSURANCE,
-                reason: `High temperature (${weatherData.temperature}°C) increases heat-related health risks. Stay protected.`,
+                ...plans.AYUSHMAN_BHARAT,
+                reason: `Extreme heat (${weatherData.temperature}°C) increases medical risks. Family coverage via PM-JAY is essential.`,
                 priority: 2
             });
         }
 
-        // Rule 4: Poor soil fertility → Agriculture Insurance
+        // Rule 4: Poor soil fertility → Weather Shield
         if (soilRisk.fertilityRisk === "HIGH" || soilRisk.soilHealth === "POOR") {
-
             recommendations.push({
-                ...plans.WEATHER_INSURANCE,
-                reason: `Poor soil conditions in ${soilRisk.district} district. Weather-based insurance can help with income protection.`,
+                ...plans.WEATHER_SHIELD,
+                reason: `Unstable soil conditions in ${soilRisk.district}. Index-based weather insurance protects your income.`,
                 priority: 2
             });
         }
 
-        // Rule 5: Medium weather risk → Livestock Insurance
+        // Rule 5: Medium weather risk → Livestock
         if (overallWeatherRisk === "MEDIUM" || overallWeatherRisk === "HIGH") {
-
             recommendations.push({
-                ...plans.LIVESTOCK_INSURANCE,
-                reason: `Weather conditions may affect livestock health. Protect your animals from climate risks.`,
+                ...plans.LIVESTOCK_ALLIANZ,
+                reason: `Potential climate stress on livestock detected. Protect your cattle assets.`,
                 priority: 3
             });
         }
 
-        // Rule 6: Always recommend crop insurance for rural areas
-        if (recommendations.length === 0) {
+        // Rule 6: Always recommend life insurance
+        if (recommendations.length < 3) {
             recommendations.push({
-                ...plans.CROP_INSURANCE,
-                reason: "Basic crop protection recommended for all farmers. Start with essential coverage.",
+                ...plans.LIC_PMJJBY,
+                reason: "Low-cost life coverage is a basic requirement for all families.",
                 priority: 3
             });
         }

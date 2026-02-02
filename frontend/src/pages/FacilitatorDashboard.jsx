@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { fetchSurveys } from "../services/api";
+import { fetchSurveys, submitSurvey } from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Users, Clock, CheckCircle, AlertCircle, Target, Phone, Plus, LogOut, FileText } from "lucide-react";
+import { Users, Clock, CheckCircle, AlertCircle, Target, Phone, Plus, LogOut, FileText, Leaf, TreePine } from "lucide-react";
+import SustainabilityTip from "../components/SustainabilityTip";
 
 function FacilitatorDashboard() {
   const { t } = useTranslation();
@@ -20,10 +21,39 @@ function FacilitatorDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('userType');
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('token');
-    navigate('/login/facilitator');
+    localStorage.clear();
+    navigate('/');
+  };
+  const handleAddFamily = async () => {
+    const name = prompt('Enter family name:');
+    if (!name) return;
+
+    const village = prompt('Enter village name:', 'Parbhani');
+    if (!village) return;
+
+    setLoading(true);
+    try {
+      // Create an initial survey record in the database with required fields
+      const newPerson = {
+        userName: name,
+        village: village,
+        landSize: 0, // Default for new record
+        cropType: "Primary", // Default for new record
+        completed: false,
+        status: 'pending'
+      };
+
+      await submitSurvey(newPerson);
+      // Refresh the list from database
+      const res = await fetchSurveys();
+      setSurveys(res.data.data);
+      alert(`${name} added successfully to the database!`);
+    } catch (err) {
+      console.error("Error adding family", err);
+      alert("Failed to save to database. Check if backend is running.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -33,12 +63,6 @@ function FacilitatorDashboard() {
         setSurveys(res.data.data);
       } catch (err) {
         console.error("Error fetching surveys", err);
-        // Add mock data if API fails
-        setSurveys([
-          { _id: '1', userName: 'Ramesh Patil', village: 'Parbhani', completed: true, createdAt: new Date(), status: 'completed' },
-          { _id: '2', userName: 'Savita Devi', village: 'Parbhani', completed: false, createdAt: new Date(), status: 'pending' },
-          { _id: '3', userName: 'Mohan Kumar', village: 'Parbhani', completed: false, createdAt: new Date(), status: 'needs help' }
-        ]);
       } finally {
         setLoading(false);
       }
@@ -47,296 +71,313 @@ function FacilitatorDashboard() {
   }, []);
 
   const getPendingTasks = () => {
-    return surveys.filter(s => !s.completed || s.needsHelp).slice(0, 3);
+    return (surveys || []).filter(s => !s.completed).slice(0, 3);
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+    <div className="min-h-screen bg-cool-grey flex items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading your dashboard...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4"></div>
+        <p className="text-slate-600 font-bold">Syncing with Database...</p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
-      <div className="max-w-6xl mx-auto p-4">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <Users className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Village Helper Dashboard</h1>
-                <p className="text-gray-600 mt-1">📍 Village: Parbhani • Facilitator ID: FAC001</p>
-              </div>
+    <div className="min-h-screen bg-cool-grey text-slate-900">
+      {/* Header */}
+      <header className="fixed w-full top-0 bg-cool-grey/90 backdrop-blur-md z-50 border-b border-slate-200">
+        <div className="w-full px-6 lg:px-10 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center">
+              <span className="text-white text-lg">🛡️</span>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Today's Date</p>
-                <p className="font-semibold">{new Date().toLocaleDateString()}</p>
-              </div>
-              <button 
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </button>
-            </div>
+            <span className="text-xl font-bold text-slate-900">InsureGuide</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full">Village Helper</span>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors font-bold text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
           </div>
         </div>
+      </header>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total Families</p>
-                <p className="text-xl font-bold text-gray-900">{total}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Completed</p>
-                <p className="text-xl font-bold text-green-600">{completed}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-xl font-bold text-orange-600">{pending}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Monthly Goal</p>
-                <p className="text-xl font-bold text-purple-600">{target}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="pt-24 px-6 lg:px-10 pb-10">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-8">
 
-        {/* Today's Tasks */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Clock className="w-6 h-6 text-orange-500" />
-            Today's Priority Tasks
-          </h2>
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-            <p className="font-semibold text-orange-800 mb-4">⏳ {getPendingTasks().length} people need immediate help</p>
-            <div className="space-y-3">
-              {getPendingTasks().length > 0 ? getPendingTasks().map((person, i) => (
-                <div key={i} className="flex items-center justify-between bg-white p-4 rounded-lg border shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                      <AlertCircle className="w-4 h-4 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{person.userName}</p>
-                      <p className="text-sm text-gray-600">{person.status || 'Survey pending'}</p>
-                    </div>
+          {/* Main Content Area */}
+          <div className="lg:col-span-3 space-y-8">
+            <SustainabilityTip context="facilitator" />
+
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                    <Users className="w-6 h-6 text-blue-600" />
                   </div>
-                  <button 
-                    onClick={() => navigate(`/agent?userId=${person._id}`)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                  >
-                    Help Now
-                  </button>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Families</p>
+                    <p className="text-2xl font-black text-slate-900">{total}</p>
+                  </div>
                 </div>
-              )) : (
-                <div className="text-center py-8">
-                  <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
-                  <p className="text-green-700 font-medium">Great job! No pending tasks today.</p>
+              </div>
+
+              <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Completed</p>
+                    <p className="text-2xl font-black text-green-600">{completed}</p>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
+              </div>
 
-        {/* Village Progress */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Users className="w-6 h-6 text-green-500" />
-            Village Progress Tracker
-          </h2>
-          <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-lg font-semibold">{completed} of {target} families completed</span>
-              <span className="text-2xl font-bold text-green-600">{getProgressPercentage()}%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
-              <div
-                className="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all duration-500 shadow-sm"
-                style={{ width: `${getProgressPercentage()}%` }}
-              ></div>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-green-600" />
-                <span>🎯 Monthly Goal: {target} families</span>
+              <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending</p>
+                    <p className="text-2xl font-black text-orange-600">{pending}</p>
+                  </div>
+                </div>
               </div>
-              <span className="font-semibold text-green-600">
-                {target - completed > 0 ? `${target - completed} more needed!` : 'Goal achieved! 🎉'}
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button 
-              onClick={() => {
-                const name = prompt('Enter family name:');
-                if (name) {
-                  const newPerson = {
-                    _id: Date.now().toString(),
-                    userName: name,
-                    village: 'Parbhani',
-                    completed: false,
-                    createdAt: new Date(),
-                    status: 'pending'
-                  };
-                  setSurveys([...surveys, newPerson]);
-                }
-              }}
-              className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors group"
-            >
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                <Plus className="w-5 h-5 text-blue-600" />
+              <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center">
+                    <Target className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Goal</p>
+                    <p className="text-2xl font-black text-purple-600">{target}</p>
+                  </div>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="font-medium text-blue-800">Add New Person</p>
-                <p className="text-sm text-blue-600">Register new family</p>
-              </div>
-            </button>
-            
-            <button 
-              onClick={() => {
-                const pendingUsers = surveys.filter(s => !s.completed);
-                if (pendingUsers.length > 0) {
-                  alert(`Reminder sent to ${pendingUsers.length} pending families!`);
-                } else {
-                  alert('No pending families to remind.');
-                }
-              }}
-              className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-colors group"
-            >
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                <Phone className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-green-800">Send Reminder</p>
-                <p className="text-sm text-green-600">Call pending families</p>
-              </div>
-            </button>
-            
-            <button 
-              onClick={() => {
-                const report = `Village Report - Parbhani\n\nTotal Families: ${total}\nCompleted: ${completed}\nPending: ${pending}\nProgress: ${getProgressPercentage()}%\n\nGenerated on: ${new Date().toLocaleDateString()}`;
-                alert(report);
-              }}
-              className="flex items-center gap-3 p-4 bg-purple-50 border border-purple-200 rounded-xl hover:bg-purple-100 transition-colors group"
-            >
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                <FileText className="w-5 h-5 text-purple-600" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-purple-800">Village Report</p>
-                <p className="text-sm text-purple-600">Generate monthly report</p>
-              </div>
-            </button>
-          </div>
-        </div>
+            </div>
 
-        {/* My Users List */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Users className="w-6 h-6 text-gray-700" />
-            My Assigned Families
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left p-4 font-semibold text-gray-700">Name</th>
-                  <th className="text-left p-4 font-semibold text-gray-700">Village</th>
-                  <th className="text-left p-4 font-semibold text-gray-700">Status</th>
-                  <th className="text-left p-4 font-semibold text-gray-700">Last Activity</th>
-                  <th className="text-left p-4 font-semibold text-gray-700">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {surveys.length > 0 ? surveys.map((s) => (
-                  <tr key={s._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                          <Users className="w-4 h-4 text-gray-600" />
+            {/* Today's Tasks */}
+            <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-8">
+              <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-slate-900">
+                <Clock className="w-8 h-8 text-orange-500" />
+                Today's Priority
+              </h2>
+              <div className="bg-orange-50/50 border border-orange-100 rounded-3xl p-6">
+                <p className="font-bold text-orange-800 mb-6 flex items-center gap-2 text-lg">
+                  <AlertCircle size={20} /> {getPendingTasks().length} families need immediate help
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {getPendingTasks().length > 0 ? getPendingTasks().map((person, i) => (
+                    <div key={i} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm group hover:shadow-md transition-all">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-bold text-lg">
+                          {person.userName[0]}
                         </div>
-                        <span className="font-medium">{s.userName}</span>
+                        <div className="min-w-0">
+                          <p className="font-black text-slate-900 truncate">{person.userName}</p>
+                          <p className="text-xs font-bold text-slate-500 uppercase">{person.status || 'Pending'}</p>
+                        </div>
                       </div>
-                    </td>
-                    <td className="p-4 text-gray-600">{s.village}</td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                        s.completed ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                      }`}>
-                        {s.completed ? (
-                          <><CheckCircle className="w-3 h-3" /> Completed</>
-                        ) : (
-                          <><AlertCircle className="w-3 h-3" /> Pending</>
-                        )}
-                      </span>
-                    </td>
-                    <td className="p-4 text-sm text-gray-600">
-                      {new Date(s.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-4">
-                      <Link
-                        to={`/recommendations/${s._id}`}
-                        className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      <button
+                        onClick={() => navigate(`/agent?userId=${person._id}`)}
+                        className="w-full bg-slate-900 text-white py-3 rounded-2xl hover:bg-slate-800 transition-colors text-sm font-bold active:scale-[0.98]"
                       >
-                        View Details
-                      </Link>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr>
-                    <td colSpan="5" className="p-8 text-center text-gray-500">
-                      <Users className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                      <p>No families assigned yet. Start by adding new people!</p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                        Start Assistance
+                      </button>
+                    </div>
+                  )) : (
+                    <div className="col-span-full text-center py-10">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle className="w-8 h-8 text-green-600" />
+                      </div>
+                      <p className="text-green-800 font-bold text-lg">Great job! All clear for today.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* My assigned families List */}
+            <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black flex items-center gap-3 text-slate-900">
+                  <Users className="w-8 h-8 text-slate-900" />
+                  My Village Families
+                </h2>
+                <button
+                  onClick={() => {
+                    const name = prompt('Enter family name:');
+                    if (name) {
+                      const newPerson = {
+                        _id: Date.now().toString(),
+                        userName: name,
+                        village: 'Parbhani',
+                        completed: false,
+                        createdAt: new Date(),
+                        status: 'pending'
+                      };
+                      setSurveys([...surveys, newPerson]);
+                    }
+                  }}
+                  className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg"
+                >
+                  <Plus size={18} /> Add Family
+                </button>
+              </div>
+              <div className="overflow-x-auto no-scrollbar">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-slate-50">
+                      <th className="text-left py-4 px-6 font-bold text-slate-500 uppercase tracking-widest text-[10px] rounded-l-2xl">Name</th>
+                      <th className="text-left py-4 px-6 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Village</th>
+                      <th className="text-left py-4 px-6 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Status</th>
+                      <th className="text-left py-4 px-6 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Last Sync</th>
+                      <th className="text-right py-4 px-6 font-bold text-slate-500 uppercase tracking-widest text-[10px] rounded-r-2xl">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {surveys.length > 0 ? surveys.map((s) => (
+                      <tr key={s._id} className="hover:bg-slate-50/50 transition-colors group">
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 font-bold group-hover:bg-white transition-colors">
+                              {s.userName[0]}
+                            </div>
+                            <span className="font-bold text-slate-900">{s.userName}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 px-6 text-slate-600 font-medium">{s.village}</td>
+                        <td className="p-4 px-6">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${s.completed ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                            }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${s.completed ? 'bg-green-600' : 'bg-orange-600'}`} />
+                            {s.completed ? 'Protected' : 'Pending'}
+                          </span>
+                        </td>
+                        <td className="p-4 px-6 text-sm text-slate-500 font-medium">
+                          {new Date(s.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="p-4 px-6 text-right">
+                          <Link
+                            to={`/recommendations/${s._id}`}
+                            className="inline-block bg-slate-100 text-slate-900 px-4 py-2 rounded-xl hover:bg-slate-200 transition-colors text-xs font-bold"
+                          >
+                            Profile
+                          </Link>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan="5" className="py-20 text-center">
+                          <Users className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+                          <p className="text-slate-400 font-bold">No families assigned yet.</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Rail / Sidebar Area */}
+          <div className="lg:col-span-1 space-y-8">
+
+            {/* Quick Actions Restructured */}
+            <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-8">
+              <h2 className="text-xl font-black mb-6 text-slate-900">Admin Controls</h2>
+              <div className="space-y-4">
+                <button
+                  onClick={() => {
+                    const pendingUsers = surveys.filter(s => !s.completed);
+                    if (pendingUsers.length > 0) {
+                      alert(`Reminder sent to ${pendingUsers.length} pending families!`);
+                    } else {
+                      alert('No pending families to remind.');
+                    }
+                  }}
+                  className="w-full flex items-center gap-4 p-5 bg-green-50/50 border border-green-100 rounded-3xl hover:bg-green-50 transition-all group"
+                >
+                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Phone className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-black text-green-900">Send Reminders</p>
+                    <p className="text-xs font-bold text-green-600">Notify pending families</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const report = `Village Report - Parbhani\n\nTotal Families: ${total}\nCompleted: ${completed}\nPending: ${pending}\nProgress: ${getProgressPercentage()}%\n\nGenerated on: ${new Date().toLocaleDateString()}`;
+                    alert(report);
+                  }}
+                  className="w-full flex items-center gap-4 p-5 bg-purple-50/50 border border-purple-100 rounded-3xl hover:bg-purple-50 transition-all group"
+                >
+                  <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <FileText className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-black text-purple-900">Export Report</p>
+                    <p className="text-xs font-bold text-purple-600">Download CSV/PDF</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Village Progress Tracker (Moved to Sidebar) */}
+            <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-8 sticky top-24">
+              <h2 className="text-xl font-black mb-6 flex items-center gap-3 text-slate-900">
+                <Target className="w-6 h-6 text-green-600" />
+                Village Progress
+              </h2>
+
+              <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-bold text-slate-600">{completed} families</span>
+                  <span className="text-sm font-bold text-slate-600">Goal: {target}</span>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-4 mb-4 overflow-hidden p-0.5">
+                  <div
+                    className="bg-slate-900 h-full rounded-full transition-all duration-700"
+                    style={{ width: `${getProgressPercentage()}%` }}
+                  ></div>
+                </div>
+                <p className="text-3xl font-black text-slate-900 mb-6">{getProgressPercentage()}% <span className="text-xs font-bold text-slate-400 uppercase">Reached</span></p>
+
+                <div className="pt-6 border-t border-slate-200 space-y-4">
+                  <p className="text-sm text-slate-700 leading-relaxed italic">
+                    {completed === 0 ? "🌟 Ready to start! Add your first family." :
+                      completed < target ? `💪 Just ${target - completed} more families to hit this month's goal!` :
+                        "🎉 Target achieved! You've done amazing work."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Carbon Footprint Widget (Moved to Sidebar) */}
+              <div className="mt-8 space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sustainability Impact</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-green-50 p-5 rounded-3xl text-center">
+                    <p className="text-xl font-black text-green-900">{completed * 4}</p>
+                    <p className="text-[10px] font-bold text-green-600 uppercase">Forms Saved</p>
+                  </div>
+                  <div className="bg-green-50 p-5 rounded-3xl text-center">
+                    <p className="text-xl font-black text-green-900">{Math.round(completed * 0.02 * 100) / 100}</p>
+                    <p className="text-[10px] font-bold text-green-600 uppercase">Trees Saved</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

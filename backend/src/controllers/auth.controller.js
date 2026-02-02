@@ -1,4 +1,5 @@
 const Otp = require("../models/Otp");
+const UserProfile = require("../models/UserProfile");
 const jwt = require("jsonwebtoken");
 const { generateOtp, isValidPhone } = require("../utils/otp");
 
@@ -69,13 +70,40 @@ exports.verifyOtp = async (req, res) => {
         // Clean up all OTPs for this phone after successful verification
         await Otp.deleteMany({ phone });
 
+        const userId = `user_${phone}`;
+        
+        // Create or update user profile in MongoDB
+        let userProfile = await UserProfile.findOne({ userId });
+        if (!userProfile) {
+            userProfile = await UserProfile.create({
+                userId,
+                preferences: {
+                    language: 'en',
+                    location: {},
+                    insuranceInterests: [],
+                    communicationStyle: 'simple'
+                },
+                profile: {},
+                chatStats: {
+                    totalSessions: 0,
+                    totalMessages: 0,
+                    lastActive: new Date(),
+                    commonQuestions: []
+                }
+            });
+        } else {
+            // Update last active time
+            userProfile.chatStats.lastActive = new Date();
+            await userProfile.save();
+        }
+
         // Generate JWT token
         const token = generateToken(phone);
 
         res.json({ 
             message: "Login successful", 
             token,
-            user: { phone }
+            user: { phone, userId, profile: userProfile }
         });
     } catch (error) {
         console.error('OTP verification error:', error);

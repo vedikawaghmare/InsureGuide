@@ -8,7 +8,7 @@ const {
 } = require("../controllers/survey.controller");
 
 // POST: save survey
-router.post("/", authMiddleware, createSurvey);
+router.post("/", createSurvey);
 
 // GET: fetch all surveys
 router.get("/", getAllSurveys);

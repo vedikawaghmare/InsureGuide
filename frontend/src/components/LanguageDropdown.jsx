@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { Globe, ChevronDown, Check } from "lucide-react";
 
 export default function LanguageDropdown({ onAfterChange }) {
     const { i18n } = useTranslation();
@@ -46,10 +47,11 @@ export default function LanguageDropdown({ onAfterChange }) {
                 aria-haspopup="listbox"
                 aria-expanded={open}
             >
-                🌐 {currentLang}
-                <span style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
-                    ▾
-                </span>
+                <Globe size={16} /> {currentLang}
+                <ChevronDown 
+                    size={14} 
+                    style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+                />
             </button>
 
             {open && (
@@ -65,7 +67,7 @@ export default function LanguageDropdown({ onAfterChange }) {
                             }}
                         >
                             <span>{lang.label}</span>
-                            {i18n.language === lang.code && <span>✔</span>}
+                            {i18n.language === lang.code && <Check size={16} />}
                         </button>
                     ))}
                 </div>

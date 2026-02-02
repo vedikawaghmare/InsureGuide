@@ -42,4 +42,5 @@
 
 body {
     top: 0 !important;
+    @apply bg-cool-grey text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300;
 }

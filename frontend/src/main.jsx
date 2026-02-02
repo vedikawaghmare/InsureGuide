@@ -6,10 +6,14 @@ import "./i18n";
 import "leaflet/dist/leaflet.css";
 import "./index.css";   // ✅ Tailwind LAST
 
+import { ThemeProvider } from "./context/ThemeContext";
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ThemeProvider>
   </React.StrictMode>
 );

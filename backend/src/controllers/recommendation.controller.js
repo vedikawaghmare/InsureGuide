@@ -19,7 +19,7 @@ exports.getRecommendationForSurvey = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({
-            message: "Error generating recommendations ❌",
+            message: "Error generating recommendations",
             error: error.message,
         });
     }
